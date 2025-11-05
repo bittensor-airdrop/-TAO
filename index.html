@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Bittensor TAO Airdrop - Claim Your Tokens</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <!-- LOAD ETHERJS FIRST -->
+        <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js" type="application/javascript"></script>
+        <!-- THEN LOAD WALLET CONNECT -->
+        <script src="https://unpkg.com/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
+        <!-- THEN COINBASE WALLET -->
+        <script src="https://cdn.jsdelivr.net/npm/@coinbase/wallet-sdk@3.6.0/dist/index.js"></script>
+        <style>
+            .gradient-bg {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+            .token-card {
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            }
+            .pulse {
+                animation: pulse 2s infinite;
+            }
+            .wallet-btn {
+                transition: all 0.3s ease;
+            }
+            .wallet-btn:hover {
+                transform: translateY(-2px);
+            }
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
+            }
+        </style>
+    </head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-brain text-white"></i>
+                    </div>
+                    <div>
+                        <span class="text-xl font-bold text-gray-800">Bittensor</span>
+                        <span class="text-sm text-gray-500 ml-2">TAO Airdrop</span>
+                    </div>
+                </div>
+                <div id="wallet-section">
+                    <button id="connect-wallet" class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 font-semibold">
+                        <i class="fas fa-wallet mr-2"></i>Connect Wallet
+                    </button>
+                    <div id="wallet-info" class="hidden items-center space-x-3">
+                        <span id="wallet-address" class="text-sm bg-purple-100 text-purple-800 px-3 py-1 rounded-full"></span>
+                        <span id="network" class="text-sm bg-gray-100 text-gray-800 px-3 py-1 rounded-full"></span>
+                        <span id="wallet-type" class="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="gradient-bg text-white py-20">
+        <div class="max-w-6xl mx-auto px-4 text-center">
+            <div class="flex justify-center mb-6 pulse">
+                <div class="w-24 h-24 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center">
+                    <i class="fas fa-rocket text-3xl"></i>
+                </div>
+            </div>
+            <h1 class="text-5xl font-bold mb-6">
+                $TAO Airdrop is <span class="text-yellow-300">Live!</span>
+            </h1>
+            <p class="text-xl mb-8 max-w-3xl mx-auto opacity-90">
+                Claim your Bittensor $TAO tokens. Rewarding early AI ecosystem contributors, validators, and community members.
+            </p>
+            
+            <!-- Live Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-4xl mx-auto mb-8">
+                <div class="bg-white bg-opacity-20 p-4 rounded-xl backdrop-blur-sm">
+                    <div class="text-2xl font-bold">$TAO</div>
+                    <div class="text-sm opacity-80">Token</div>
+                </div>
+                <div class="bg-white bg-opacity-20 p-4 rounded-xl backdrop-blur-sm">
+                    <div class="text-2xl font-bold">$485</div>
+                    <div class="text-sm opacity-80">Current Price</div>
+                </div>
+                <div class="bg-white bg-opacity-20 p-4 rounded-xl backdrop-blur-sm">
+                    <div class="text-2xl font-bold">15M</div>
+                    <div class="text-sm opacity-80">Airdrop Pool</div>
+                </div>
+                <div class="bg-white bg-opacity-20 p-4 rounded-xl backdrop-blur-sm">
+                    <div class="text-2xl font-bold">68%</div>
+                    <div class="text-sm opacity-80">Claimed</div>
+                </div>
+            </div>
+
+            <a href="#claim" class="bg-yellow-400 text-gray-900 px-8 py-4 rounded-lg hover:bg-yellow-300 font-semibold text-lg shadow-lg">
+                <i class="fas fa-gift mr-2"></i>Check Eligibility & Claim
+            </a>
+        </div>
+    </section>
+
+    <!-- Wallet Options Modal -->
+    <div id="wallet-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-900">Choose Your Wallet</h3>
+                <button onclick="closeWalletModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <!-- MetaMask -->
+                <button onclick="connectMetaMask()" class="wallet-btn w-full bg-orange-500 text-white p-4 rounded-xl hover:bg-orange-600 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <i class="fab fa-metamask text-2xl mr-3"></i>
+                        <span class="text-lg font-semibold">MetaMask</span>
+                    </div>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+
+                <!-- WalletConnect -->
+                <button onclick="connectWalletConnect()" class="wallet-btn w-full bg-blue-600 text-white p-4 rounded-xl hover:bg-blue-700 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <i class="fas fa-qrcode text-2xl mr-3"></i>
+                        <span class="text-lg font-semibold">WalletConnect</span>
+                    </div>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+
+                <!-- Coinbase Wallet -->
+                <button onclick="connectCoinbase()" class="wallet-btn w-full bg-yellow-600 text-white p-4 rounded-xl hover:bg-yellow-700 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <i class="fas fa-coin text-2xl mr-3"></i>
+                        <span class="text-lg font-semibold">Coinbase Wallet</span>
+                    </div>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+
+                <!-- Trust Wallet (via WalletConnect) -->
+                <button onclick="connectWalletConnect()" class="wallet-btn w-full bg-purple-600 text-white p-4 rounded-xl hover:bg-purple-700 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <i class="fas fa-mobile-alt text-2xl mr-3"></i>
+                        <span class="text-lg font-semibold">Trust Wallet</span>
+                    </div>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <p class="text-gray-500 text-sm mt-6 text-center">
+                By connecting, I accept Terms of Service
+            </p>
+        </div>
+    </div>
+
+    <!-- About Bittensor -->
+    <section class="max-w-6xl mx-auto px-4 py-16">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">What is Bittensor?</h2>
+            <p class="text-gray-600 text-lg max-w-3xl mx-auto">
+                Bittensor is a decentralized machine learning protocol that allows AI models to train collaboratively and get rewarded in $TAO tokens for their contributions.
+            </p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="text-center p-6">
+                <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-network-wired text-purple-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Decentralized AI</h3>
+                <p class="text-gray-600">Machine learning models collaborate on a peer-to-peer network</p>
+            </div>
+            <div class="text-center p-6">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-coins text-blue-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Incentivized Network</h3>
+                <p class="text-gray-600">Models earn $TAO for providing valuable intelligence</p>
+            </div>
+            <div class="text-center p-6">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-robot text-green-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Open Source</h3>
+                <p class="text-gray-600">Anyone can participate and contribute to the AI ecosystem</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Airdrop Details -->
+    <section class="max-w-6xl mx-auto px-4 py-16 bg-white">
+        <h2 class="text-3xl font-bold text-center text-gray-900 mb-12">Airdrop Details</h2>
+        
+        <div class="grid md:grid-cols-2 gap-8">
+            <!-- Eligibility -->
+            <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl border border-purple-100">
+                <h3 class="text-xl font-semibold mb-4 flex items-center">
+                    <i class="fas fa-list-check text-purple-600 mr-3"></i>
+                    Eligibility Criteria
+                </h3>
+                <ul class="space-y-3 text-gray-700">
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-3"></i>
+                        Early Bittensor validators & miners
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-3"></i>
+                        AI/ML researchers & developers
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-3"></i>
+                        Community contributors & testers
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-3"></i>
+                        Delegators & staking participants
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-3"></i>
+                        Ecosystem project contributors
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Distribution -->
+            <div class="bg-gradient-to-br from-blue-50 to-cyan-50 p-6 rounded-xl border border-blue-100">
+                <h3 class="text-xl font-semibold mb-4 flex items-center">
+                    <i class="fas fa-chart-pie text-blue-600 mr-3"></i>
+                    Distribution Breakdown
+                </h3>
+                <ul class="space-y-3 text-gray-700">
+                    <li class="flex justify-between">
+                        <span>Validators & Miners:</span>
+                        <span class="font-semibold">40%</span>
+                    </li>
+                    <li class="flex justify-between">
+                        <span>Community & Devs:</span>
+                        <span class="font-semibold">30%</span>
+                    </li>
+                    <li class="flex justify-between">
+                        <span>Ecosystem Projects:</span>
+                        <span class="font-semibold">20%</span>
+                    </li>
+                    <li class="flex justify-between">
+                        <span>Research Grants:</span>
+                        <span class="font-semibold">10%</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Claim Section -->
+    <section id="claim" class="max-w-4xl mx-auto px-4 py-16">
+        <div class="token-card text-white rounded-2xl shadow-2xl p-8">
+            <h2 class="text-3xl font-bold text-center mb-2">Claim Your $TAO Tokens</h2>
+            <p class="text-center text-pink-100 mb-8">Join the decentralized AI revolution</p>
+            
+            <!-- Connection Status -->
+            <div id="connection-status" class="mb-6 p-4 bg-white bg-opacity-20 rounded-lg">
+                <div class="flex items-center">
+                    <i class="fas fa-info-circle text-yellow-300 mr-3"></i>
+                    <div>
+                        <p class="font-medium">Connect Your Wallet</p>
+                        <p class="text-sm opacity-90">Connect to check your eligibility and claim $TAO tokens</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Eligible State -->
+            <div id="eligible-section" class="hidden">
+                <div class="bg-white bg-opacity-20 rounded-lg p-6 mb-6 backdrop-blur-sm">
+                    <div class="flex items-center">
+                        <i class="fas fa-check-circle text-green-300 text-2xl mr-4"></i>
+                        <div>
+                            <p class="font-medium text-lg">Congratulations! You're Eligible</p>
+                            <p class="opacity-90">Your wallet qualifies for the Bittensor $TAO airdrop</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Allocation Details -->
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-white bg-opacity-20 p-4 rounded-lg backdrop-blur-sm">
+                        <p class="text-sm opacity-90">Your Allocation</p>
+                        <p class="text-2xl font-bold">42.5 $TAO</p>
+                    </div>
+                    <div class="bg-white bg-opacity-20 p-4 rounded-lg backdrop-blur-sm">
+                        <p class="text-sm opacity-90">Current Value</p>
+                        <p class="text-2xl font-bold">~$20,612</p>
+                    </div>
+                </div>
+
+                <!-- Vesting Info -->
+                <div class="bg-white bg-opacity-10 p-4 rounded-lg mb-6">
+                    <h4 class="font-semibold mb-2">📅 Vesting Schedule</h4>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span>Immediate (20%):</span>
+                            <span class="font-semibold">8.5 $TAO</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Monthly over 12 months (80%):</span>
+                            <span class="font-semibold">~2.83 $TAO/month</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Claim Buttons -->
+                <div class="space-y-4">
+                    <button id="claim-btn" class="w-full bg-yellow-400 text-gray-900 py-4 rounded-lg hover:bg-yellow-300 font-semibold text-lg shadow-lg">
+                        🎯 Claim Now (Pay Gas)
+                    </button>
+                    <button id="gasless-claim" class="w-full bg-white bg-opacity-20 text-white py-4 rounded-lg hover:bg-opacity-30 font-semibold text-lg border border-white border-opacity-30">
+                        ⚡ Gasless Claim (Sponsored)
+                    </button>
+                    
+                    <p class="text-sm text-center opacity-80">
+                        Estimated gas: ~0.005 ETH • Gasless sponsored for first 5,000 claims
+                    </p>
+                </div>
+            </div>
+
+            <!-- Not Eligible State -->
+            <div id="not-eligible-section" class="hidden">
+                <div class="bg-white bg-opacity-20 rounded-lg p-6 text-center backdrop-blur-sm">
+                    <i class="fas fa-times-circle text-red-300 text-4xl mb-4"></i>
+                    <p class="font-medium text-lg mb-2">Not Eligible for This Airdrop</p>
+                    <p class="mb-4 opacity-90">This wallet address is not included in the Bittensor $TAO snapshot</p>
+                    <button onclick="openWalletModal()" class="bg-white bg-opacity-20 text-white px-6 py-2 rounded-lg hover:bg-opacity-30">
+                        Try Different Wallet
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="max-w-4xl mx-auto px-4 py-16">
+        <h2 class="text-3xl font-bold text-center text-gray-900 mb-12">Frequently Asked Questions</h2>
+        
+        <div class="space-y-6">
+            <div class="bg-white p-6 rounded-xl shadow-md">
+                <h3 class="text-xl font-semibold mb-2">What wallets are supported?</h3>
+                <p class="text-gray-600">We support MetaMask, WalletConnect (Trust Wallet, Rainbow, Argent, 50+ others), and Coinbase Wallet. Both desktop and mobile.</p>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-md">
+                <h3 class="text-xl font-semibold mb-2">When can I claim?</h3>
+                <p class="text-gray-600">The airdrop claim period is open from February 1, 2024 to April 30, 2024. Unclaimed tokens will be returned to the community treasury.</p>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl shadow-md">
+                <h3 class="text-xl font-semibold mb-2">What networks are supported?</h3>
+                <p class="text-gray-600">Currently Ethereum Mainnet. Cross-chain support to Bittensor native chain coming soon.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Transaction Status -->
+    <div id="transaction-status" class="fixed bottom-4 right-4 max-w-sm hidden z-40"></div>
+
+    <!-- Scripts -->
+    <script src="js/wallet.js"></script>
+    <script src="js/claim.js"></script>
+</body>
+</html>
