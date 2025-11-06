@@ -1,4 +1,4 @@
-// Simple Wallet Manager - No Ethers.js Dependency
+// Simple Wallet Manager - Desktop & Mobile Compatible
 class SimpleWalletManager {
     constructor() {
         this.provider = null;
@@ -7,13 +7,19 @@ class SimpleWalletManager {
         this.walletType = null;
     }
 
-    // Connect to MetaMask
+    // Connect to MetaMask (works on both)
     async connectMetaMask() {
         try {
             if (typeof window.ethereum === 'undefined') {
-                this.showError('Please install MetaMask!');
-                window.open('https://metamask.io/download.html', '_blank');
-                return;
+                // Mobile fallback - open MetaMask deeplink
+                if (this.isMobile()) {
+                    window.location.href = 'https://metamask.app.link/dapp/' + window.location.hostname;
+                    return;
+                } else {
+                    this.showError('Please install MetaMask!');
+                    window.open('https://metamask.io/download.html', '_blank');
+                    return;
+                }
             }
 
             this.walletType = 'MetaMask';
@@ -28,19 +34,28 @@ class SimpleWalletManager {
             this.updateUI();
             this.setupEventListeners();
             this.checkEligibility();
-            closeWalletModal(); // FIXED
+            closeWalletModal();
 
         } catch (error) {
             this.handleConnectionError(error, 'MetaMask');
         }
     }
 
-    // Connect via WalletConnect
+    // Connect via WalletConnect (works on both)
     async connectWalletConnect() {
         try {
             this.walletType = 'WalletConnect';
-            alert('WalletConnect: In a production app, this would open QR scanner. For now, please use MetaMask.');
-            closeWalletModal(); // FIXED
+            
+            // For demo purposes - simulate connection
+            if (this.isMobile()) {
+                // On mobile, WalletConnect would open app directly
+                alert('WalletConnect: Would open QR scanner/app on mobile. For demo, use MetaMask.');
+            } else {
+                // On desktop, WalletConnect would show QR code
+                alert('WalletConnect: Would show QR code on desktop. For demo, use MetaMask.');
+            }
+            
+            closeWalletModal();
             return;
 
         } catch (error) {
@@ -48,9 +63,10 @@ class SimpleWalletManager {
         }
     }
 
-    // Connect to Coinbase Wallet
+    // Connect to Coinbase Wallet (works on both)
     async connectCoinbase() {
         try {
+            // Check for Coinbase Wallet injection
             if (typeof window.ethereum !== 'undefined' && window.ethereum.isCoinbaseWallet) {
                 this.walletType = 'Coinbase Wallet';
                 const accounts = await window.ethereum.request({
@@ -59,14 +75,12 @@ class SimpleWalletManager {
                 this.address = accounts[0];
                 this.chainId = await window.ethereum.request({ method: 'eth_chainId' });
                 this.provider = window.ethereum;
-            } else if (typeof window.coinbaseWalletExtension !== 'undefined') {
+            } 
+            // Mobile fallback - open Coinbase Wallet deeplink
+            else if (this.isMobile()) {
                 this.walletType = 'Coinbase Wallet';
-                const accounts = await window.coinbaseWalletExtension.request({
-                    method: 'eth_requestAccounts'
-                });
-                this.address = accounts[0];
-                this.chainId = await window.coinbaseWalletExtension.request({ method: 'eth_chainId' });
-                this.provider = window.coinbaseWalletExtension;
+                window.location.href = 'https://go.cb-w.com/dapp?cb_url=' + encodeURIComponent(window.location.href);
+                return;
             } else {
                 this.showError('Coinbase Wallet not detected. Please install it first.');
                 window.open('https://www.coinbase.com/wallet', '_blank');
@@ -76,16 +90,17 @@ class SimpleWalletManager {
             this.updateUI();
             this.setupEventListeners();
             this.checkEligibility();
-            closeWalletModal(); // FIXED
+            closeWalletModal();
 
         } catch (error) {
             this.handleConnectionError(error, 'Coinbase Wallet');
         }
     }
 
-    // Connect to Trust Wallet
+    // Connect to Trust Wallet (works on both)
     async connectTrustWallet() {
         try {
+            // Check for Trust Wallet injection
             if (typeof window.ethereum !== 'undefined' && window.ethereum.isTrust) {
                 this.walletType = 'Trust Wallet';
                 const accounts = await window.ethereum.request({
@@ -94,6 +109,12 @@ class SimpleWalletManager {
                 this.address = accounts[0];
                 this.chainId = await window.ethereum.request({ method: 'eth_chainId' });
                 this.provider = window.ethereum;
+            } 
+            // Mobile fallback - open Trust Wallet deeplink
+            else if (this.isMobile()) {
+                this.walletType = 'Trust Wallet';
+                window.location.href = 'https://link.trustwallet.com/wc?uri=' + encodeURIComponent(window.location.href);
+                return;
             } else {
                 this.showError('Trust Wallet not detected. Please install it first.');
                 window.open('https://trustwallet.com', '_blank');
@@ -103,14 +124,19 @@ class SimpleWalletManager {
             this.updateUI();
             this.setupEventListeners();
             this.checkEligibility();
-            closeWalletModal(); // FIXED
+            closeWalletModal();
 
         } catch (error) {
             this.handleConnectionError(error, 'Trust Wallet');
         }
     }
 
-    // Update UI with wallet info
+    // Helper method to detect mobile devices
+    isMobile() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
+    // Rest of your existing methods remain the same...
     updateUI() {
         const connectBtn = document.getElementById('connect-wallet');
         const walletInfo = document.getElementById('wallet-info');
@@ -124,11 +150,9 @@ class SimpleWalletManager {
             walletInfo.classList.remove('hidden');
             connectionStatus.classList.add('hidden');
             
-            // Shorten address for display
             const shortAddress = this.address.substring(0, 6) + '...' + this.address.substring(38);
             walletAddress.textContent = shortAddress;
             
-            // Display network and wallet type
             const networkName = this.getNetworkName(this.chainId);
             network.textContent = networkName;
             walletType.textContent = this.walletType;
@@ -146,23 +170,23 @@ class SimpleWalletManager {
     }
 
     setupEventListeners() {
-        // Handle chain changes
-        this.provider.on('chainChanged', (chainId) => {
-            this.chainId = chainId;
-            this.updateUI();
-            this.checkEligibility();
-        });
-
-        // Handle account changes
-        this.provider.on('accountsChanged', (accounts) => {
-            if (accounts.length === 0) {
-                this.disconnect();
-            } else {
-                this.address = accounts[0];
+        if (this.provider) {
+            this.provider.on('chainChanged', (chainId) => {
+                this.chainId = chainId;
                 this.updateUI();
                 this.checkEligibility();
-            }
-        });
+            });
+
+            this.provider.on('accountsChanged', (accounts) => {
+                if (accounts.length === 0) {
+                    this.disconnect();
+                } else {
+                    this.address = accounts[0];
+                    this.updateUI();
+                    this.checkEligibility();
+                }
+            });
+        }
     }
 
     async checkEligibility() {
@@ -172,8 +196,7 @@ class SimpleWalletManager {
 
         connectionStatus.classList.add('hidden');
         
-        // Mock eligibility check - always eligible for demo
-        const isEligible = true;
+        const isEligible = true; // Always eligible for demo
         
         if (isEligible) {
             eligibleSection.classList.remove('hidden');
