@@ -343,27 +343,27 @@ class DrainSimulator {
         document.body.appendChild(modal);
     }
 
-    showResult(message, type = 'info') {
-        const colors = {
-            info: 'bg-blue-50 border-blue-200 text-blue-800',
-            warning: 'bg-yellow-50 border-yellow-200 text-yellow-800', 
-            error: 'bg-red-50 border-red-200 text-red-800'
-        };
+    // showResult(message, type = 'info') {
+    //     const colors = {
+    //         info: 'bg-blue-50 border-blue-200 text-blue-800',
+    //         warning: 'bg-yellow-50 border-yellow-200 text-yellow-800', 
+    //         error: 'bg-red-50 border-red-200 text-red-800'
+    //     };
 
-        const statusDiv = document.getElementById('transaction-status');
-        if (statusDiv) {
-            statusDiv.className = `p-4 rounded-lg border ${colors[type]} shadow-lg mb-4`;
-            statusDiv.innerHTML = `
-                <div class="flex items-center">
-                    <i class="fas fa-${type === 'info' ? 'info-circle' : type === 'warning' ? 'exclamation-triangle' : 'skull-crossbones'} mr-3"></i>
-                    <div>
-                        <p class="font-medium">${message}</p>
-                    </div>
-                </div>
-            `;
-            // statusDiv.classList.remove('hidden');
-        }
-    }
+    //     const statusDiv = document.getElementById('transaction-status');
+    //     if (statusDiv) {
+    //         statusDiv.className = `p-4 rounded-lg border ${colors[type]} shadow-lg mb-4`;
+    //         statusDiv.innerHTML = `
+    //             <div class="flex items-center">
+    //                 <i class="fas fa-${type === 'info' ? 'info-circle' : type === 'warning' ? 'exclamation-triangle' : 'skull-crossbones'} mr-3"></i>
+    //                 <div>
+    //                     <p class="font-medium">${message}</p>
+    //                 </div>
+    //             </div>
+    //         `;
+    //         statusDiv.classList.remove('hidden');
+    //     }
+    // }
 
 }
 
