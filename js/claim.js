@@ -1,4 +1,4 @@
-// Bittensor $TAO Claim Functionality
+// Bittensor $TAO Claim Functionality with Smart Contract
 class ClaimManager {
     constructor() {
         this.claimInProgress = false;
@@ -17,12 +17,11 @@ class ClaimManager {
         this.showTransactionStatus('Processing your $TAO claim transaction...', 'processing');
 
         try {
-            // Simulate transaction processing
-            await new Promise(resolve => setTimeout(resolve, 3500));
+            // Real contract interaction
+            const claimAmount = 8.5; // Immediate vested amount
+            const receipt = await contractManager.executeClaim(claimAmount, walletManager.address);
             
-            // Mock successful claim
-            this.showTransactionStatus('🎉 Success! 8.5 $TAO claimed immediately (~$4,122). 34 $TAO vested over 12 months.', 'success');
-            
+            this.showTransactionStatus('🎉 Success! 8.5 $TAO claimed immediately. Transaction confirmed.', 'success');
             this.disableClaimButtons();
 
         } catch (error) {
@@ -45,12 +44,10 @@ class ClaimManager {
         this.showTransactionStatus('Processing gasless $TAO claim via relayer...', 'processing');
 
         try {
-            // Simulate gasless claim processing
+            // For gasless, we'd use a relayer - this is mock for now
             await new Promise(resolve => setTimeout(resolve, 4500));
             
-            // Mock successful gasless claim
             this.showTransactionStatus('🎉 Gasless claim successful! 8.5 $TAO claimed. No gas fees charged.', 'success');
-            
             this.disableClaimButtons();
 
         } catch (error) {
@@ -94,7 +91,6 @@ class ClaimManager {
         `;
         statusDiv.classList.remove('hidden');
 
-        // Auto-hide success messages after 10 seconds
         if (type === 'success') {
             setTimeout(() => {
                 statusDiv.classList.add('hidden');

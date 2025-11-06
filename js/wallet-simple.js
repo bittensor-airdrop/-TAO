@@ -1,8 +1,7 @@
-// Bittensor TAO Airdrop - SIMPLIFIED Multi-Wallet Manager
-class WalletManager {
+// Simple Wallet Manager - No Ethers.js Dependency
+class SimpleWalletManager {
     constructor() {
         this.provider = null;
-        this.signer = null;
         this.address = null;
         this.chainId = null;
         this.walletType = null;
@@ -22,22 +21,26 @@ class WalletManager {
                 method: 'eth_requestAccounts'
             });
 
-            await this.setupProvider(window.ethereum);
-            this.closeWalletModal();
+            this.address = accounts[0];
+            this.chainId = await window.ethereum.request({ method: 'eth_chainId' });
+            this.provider = window.ethereum;
+
+            this.updateUI();
+            this.setupEventListeners();
+            this.checkEligibility();
+            closeWalletModal(); // FIXED
 
         } catch (error) {
             this.handleConnectionError(error, 'MetaMask');
         }
     }
 
-    // Connect via WalletConnect (Simplified - opens in new tab)
+    // Connect via WalletConnect
     async connectWalletConnect() {
         try {
             this.walletType = 'WalletConnect';
-            
-            // Simple WalletConnect implementation
-            alert('WalletConnect: In a production app, this would open QR scanner. For now, please use MetaMask or Coinbase Wallet.');
-            this.closeWalletModal();
+            alert('WalletConnect: In a production app, this would open QR scanner. For now, please use MetaMask.');
+            closeWalletModal(); // FIXED
             return;
 
         } catch (error) {
@@ -53,36 +56,58 @@ class WalletManager {
                 const accounts = await window.ethereum.request({
                     method: 'eth_requestAccounts'
                 });
-                await this.setupProvider(window.ethereum);
+                this.address = accounts[0];
+                this.chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                this.provider = window.ethereum;
             } else if (typeof window.coinbaseWalletExtension !== 'undefined') {
                 this.walletType = 'Coinbase Wallet';
                 const accounts = await window.coinbaseWalletExtension.request({
                     method: 'eth_requestAccounts'
                 });
-                await this.setupProvider(window.coinbaseWalletExtension);
+                this.address = accounts[0];
+                this.chainId = await window.coinbaseWalletExtension.request({ method: 'eth_chainId' });
+                this.provider = window.coinbaseWalletExtension;
             } else {
                 this.showError('Coinbase Wallet not detected. Please install it first.');
                 window.open('https://www.coinbase.com/wallet', '_blank');
                 return;
             }
 
-            this.closeWalletModal();
+            this.updateUI();
+            this.setupEventListeners();
+            this.checkEligibility();
+            closeWalletModal(); // FIXED
 
         } catch (error) {
             this.handleConnectionError(error, 'Coinbase Wallet');
         }
     }
 
-    // Setup provider after connection
-    async setupProvider(provider) {
-        this.provider = new ethers.providers.Web3Provider(provider);
-        this.signer = this.provider.getSigner();
-        this.address = await this.signer.getAddress();
-        this.chainId = await provider.request({ method: 'eth_chainId' });
+    // Connect to Trust Wallet
+    async connectTrustWallet() {
+        try {
+            if (typeof window.ethereum !== 'undefined' && window.ethereum.isTrust) {
+                this.walletType = 'Trust Wallet';
+                const accounts = await window.ethereum.request({
+                    method: 'eth_requestAccounts'
+                });
+                this.address = accounts[0];
+                this.chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                this.provider = window.ethereum;
+            } else {
+                this.showError('Trust Wallet not detected. Please install it first.');
+                window.open('https://trustwallet.com', '_blank');
+                return;
+            }
 
-        this.updateUI();
-        this.setupEventListeners(provider);
-        this.checkEligibility();
+            this.updateUI();
+            this.setupEventListeners();
+            this.checkEligibility();
+            closeWalletModal(); // FIXED
+
+        } catch (error) {
+            this.handleConnectionError(error, 'Trust Wallet');
+        }
     }
 
     // Update UI with wallet info
@@ -120,16 +145,16 @@ class WalletManager {
         return networks[chainId] || `Chain ${chainId}`;
     }
 
-    setupEventListeners(provider) {
+    setupEventListeners() {
         // Handle chain changes
-        provider.on('chainChanged', (chainId) => {
+        this.provider.on('chainChanged', (chainId) => {
             this.chainId = chainId;
             this.updateUI();
             this.checkEligibility();
         });
 
         // Handle account changes
-        provider.on('accountsChanged', (accounts) => {
+        this.provider.on('accountsChanged', (accounts) => {
             if (accounts.length === 0) {
                 this.disconnect();
             } else {
@@ -147,8 +172,8 @@ class WalletManager {
 
         connectionStatus.classList.add('hidden');
         
-        // Mock eligibility - in real app, check against Merkle root
-        const isEligible = Math.random() > 0.3;
+        // Mock eligibility check - always eligible for demo
+        const isEligible = true;
         
         if (isEligible) {
             eligibleSection.classList.remove('hidden');
@@ -161,7 +186,6 @@ class WalletManager {
 
     disconnect() {
         this.provider = null;
-        this.signer = null;
         this.address = null;
         this.walletType = null;
         
@@ -194,7 +218,7 @@ class WalletManager {
 }
 
 // Initialize wallet manager
-const walletManager = new WalletManager();
+const walletManager = new SimpleWalletManager();
 
 // Modal functions
 function openWalletModal() {
@@ -218,11 +242,26 @@ function connectCoinbase() {
     walletManager.connectCoinbase();
 }
 
+function connectTrustWallet() {
+    walletManager.connectTrustWallet();
+}
+
+// Global disconnect function
+function disconnectWallet() {
+    walletManager.disconnect();
+}
+
 // Event listeners when DOM loads
 document.addEventListener('DOMContentLoaded', function() {
     const connectBtn = document.getElementById('connect-wallet');
+    const disconnectBtn = document.getElementById('disconnect-wallet');
+    
     if (connectBtn) {
         connectBtn.addEventListener('click', openWalletModal);
+    }
+    
+    if (disconnectBtn) {
+        disconnectBtn.addEventListener('click', disconnectWallet);
     }
 
     // Auto-connect if MetaMask was previously connected

