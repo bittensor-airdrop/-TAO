@@ -8,38 +8,49 @@ class SimpleWalletManager {
     }
 
     // Connect to MetaMask (works on both)
-    async connectMetaMask() {
-        try {
-            if (typeof window.ethereum === 'undefined') {
-                // Mobile fallback - open MetaMask deeplink
-                if (this.isMobile()) {
-                    window.location.href = 'https://metamask.app.link/dapp/' + window.location.hostname;
-                    return;
-                } else {
-                    this.showError('Please install MetaMask!');
-                    window.open('https://metamask.io/download.html', '_blank');
-                    return;
-                }
+async connectMetaMask() {
+    try {
+        if (typeof window.ethereum === 'undefined') {
+            // Mobile fallback - better deeplink handling
+            if (this.isMobile()) {
+                // Try multiple deeplink formats
+                const urls = [
+                    `https://metamask.app.link/dapp/${window.location.hostname}${window.location.pathname}`,
+                    `https://metamask.app.link/dapp/${window.location.href}`,
+                    `https://metamask.app.link/browser/${window.location.href}`
+                ];
+                
+              // ✅ FIX: Remove the loop, use single redirect
+if (this.isMobile()) {
+    window.location.href = `https://metamask.app.link/dapp/${window.location.hostname}${window.location.pathname}`;
+    return; // Stop execution immediately
+}
+            } else {
+                this.showError('Please install MetaMask!');
+                window.open('https://metamask.io/download.html', '_blank');
+                return;
             }
-
-            this.walletType = 'MetaMask';
-            const accounts = await window.ethereum.request({
-                method: 'eth_requestAccounts'
-            });
-
-            this.address = accounts[0];
-            this.chainId = await window.ethereum.request({ method: 'eth_chainId' });
-            this.provider = window.ethereum;
-
-            this.updateUI();
-            this.setupEventListeners();
-            this.checkEligibility();
-            closeWalletModal();
-
-        } catch (error) {
-            this.handleConnectionError(error, 'MetaMask');
         }
+
+        this.walletType = 'MetaMask';
+        const accounts = await window.ethereum.request({
+            method: 'eth_requestAccounts'
+        });
+
+        this.address = accounts[0];
+        this.chainId = await window.ethereum.request({ method: 'eth_chainId' });
+        this.provider = window.ethereum;
+
+        this.updateUI();
+        this.setupEventListeners();
+        this.checkEligibility();
+        closeWalletModal();
+
+    } catch (error) {
+        this.handleConnectionError(error, 'MetaMask');
     }
+}
+
 
     // Connect via WalletConnect (works on both)
     async connectWalletConnect() {
